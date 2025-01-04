@@ -1,6 +1,6 @@
 # 8WeekSQLChallenge
 
-This repository contains my solutions to the **8WeekSQLChallenge**, created by [Danny Ma](https://twitter.com/dannyma21), aimed at enhancing my SQL skills and applying them to real-world case studies. Each folder corresponds to a challenge from the series.
+This repository contains my solutions to the **8WeekSQLChallenge**, created by [Danny Ma](https://www.linkedin.com/in/datawithdanny/), aimed at enhancing my SQL skills and applying them to real-world case studies. Each folder corresponds to a challenge from the series.
 
 ## About the Challenge
 
