@@ -125,3 +125,100 @@ LIMIT 1;
 The query identifies the `order_id` with the highest number of pizzas delivered using `GROUP BY` and orders the results in descending order. The `LIMIT 1` ensures only the top result is shown.
 
 ---
+
+### 7. For each customer, how many delivered pizzas had at least 1 change and how many had no changes?
+```sql
+SELECT customer_id,
+       SUM(CASE 
+           WHEN exclusions IS NULL
+           AND extras IS NULL
+           THEN 1 ELSE 0 
+           END) AS no_change,
+       SUM(CASE 
+           WHEN exclusions IS NOT NULL
+           OR extras IS NOT NULL
+           THEN 1 ELSE 0 
+           END) AS atleast_one_change
+FROM customer_orders_temp 
+JOIN runner_orders_temp USING (order_id)
+WHERE pickup_time IS NOT NULL
+GROUP BY 1;
+```
+**Output:**  
+| customer_id | no_change | atleast_one_change |  
+|-------------|-----------|--------------------|  
+| 101         | 2         | 0                  |  
+| 103         | 0         | 3                  |  
+| 104         | 1         | 2                  |  
+| 105         | 0         | 1                  |  
+| 102         | 3         | 0                  |  
+
+**Explanation:**  
+This query uses `CASE` statements to classify pizzas as either having no changes (`exclusions` and `extras` are `NULL`) or having at least one change (`exclusions` or `extras` are `NOT NULL`). The results are grouped by `customer_id`.
+
+---
+
+### 8. How many pizzas were delivered that had both exclusions and extras?
+```sql
+SELECT SUM(CASE 
+           WHEN exclusions IS NOT NULL
+           AND extras IS NOT NULL
+           THEN 1 ELSE 0 
+           END) AS atleast_one_change
+FROM customer_orders_temp 
+JOIN runner_orders_temp USING (order_id)
+WHERE pickup_time IS NOT NULL;
+```
+**Output:**  
+| atleast_one_change |  
+|--------------------|  
+| 1                  |  
+
+**Explanation:**  
+The query counts the pizzas that had both `exclusions` and `extras` by checking if both columns are `NOT NULL` in delivered orders (`pickup_time IS NOT NULL`).
+
+---
+
+### 9. What was the total volume of pizzas ordered for each hour of the day?
+```sql
+SELECT EXTRACT(hour FROM order_time) AS hour,
+       COUNT(*) AS pizzas_ordered
+FROM customer_orders_temp 
+GROUP BY 1;
+```
+**Output:**  
+| hour | pizzas_ordered |  
+|------|----------------|  
+| 18   | 3              |  
+| 23   | 3              |  
+| 21   | 3              |  
+| 11   | 1              |  
+| 19   | 1              |  
+| 13   | 3              |  
+
+**Explanation:**  
+Using the `EXTRACT` function, this query retrieves the hour from the `order_time` column and counts the total pizzas ordered in each hour.
+
+---
+
+### 10. What was the volume of orders for each day of the week?
+```sql
+SELECT TO_CHAR(order_time, 'Day') AS "Day of the week",
+       COUNT(*) AS pizzas_ordered,
+       ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 2) AS net_volume
+FROM customer_orders_temp 
+GROUP BY 1
+ORDER BY 2 DESC;
+```
+**Output:**  
+| Day of the week | pizzas_ordered | net_volume |  
+|-----------------|----------------|------------|  
+| Saturday        | 5              | 35.71      |  
+| Wednesday       | 5              | 35.71      |  
+| Thursday        | 3              | 21.43      |  
+| Friday          | 1              | 7.14       |  
+
+**Explanation:**  
+This query groups orders by the day of the week using the `TO_CHAR` function. It calculates the percentage of orders (`net_volume`) for each day by dividing the day's orders by the total orders, multiplied by 100. The result is sorted in descending order of pizzas ordered.
+
+---
